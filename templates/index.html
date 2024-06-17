@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload CSV File</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            margin: 0;
+            padding-top: 10vh;
+        }
+        .upload-box {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .upload-box h2 {
+            margin-bottom: 20px;
+        }
+        .upload-box input[type="file"] {
+            display: block;
+            margin: 0 auto 20px auto;
+        }
+        .upload-box button {
+            background-color: #00ff26;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .upload-box button:hover {
+            background-color: #00b351;
+        }
+        #spinner {
+            display: none;
+        }
+    </style>
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            var fileInput = document.getElementById("file-upload");
+            if (fileInput.files.length === 0) {
+                alert("Please select a file.");
+                return;
+            }
+            var file = fileInput.files[0];
+            var formData = new FormData();
+            formData.append("file", file);
+
+            var spinner = document.getElementById("spinner");
+            spinner.style.display = "block";
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/predict", true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+
+                    var amountImg = document.createElement("img");
+                    amountImg.src = response.amount_img;
+                    amountImg.style.width = "30%";
+
+                    var freqImg = document.createElement("img");
+                    freqImg.src = response.freq_img;
+                    freqImg.style.width = "30%";
+
+                    var recencyImg = document.createElement("img");
+                    recencyImg.src = response.recency_img;
+                    recencyImg.style.width = "30%";
+
+                    spinner.style.display = "none";
+
+                    var imagesDiv = document.createElement("div");
+                    imagesDiv.style.display = "flex";
+                    imagesDiv.style.flexWrap = "wrap";
+                    imagesDiv.style.marginTop = "20px";
+                    imagesDiv.style.marginBottom = "20px";
+                    imagesDiv.style.justifyContent = "space-between";
+                    imagesDiv.style.alignItems = "center";
+                    imagesDiv.style.width = "100%";
+                    imagesDiv.appendChild(amountImg);
+                    imagesDiv.appendChild(freqImg);
+                    imagesDiv.appendChild(recencyImg);
+                    
+                    var resultDiv = document.getElementById("results");
+                    resultDiv.innerHTML = ""; // Clear previous results
+                    resultDiv.appendChild(imagesDiv);
+                }
+            };
+            xhr.send(formData);
+        }
+    </script>
+</head>
+<body>
+    <div class="upload-box">
+        <h2>Upload your CSV file</h2>
+        <form id="upload-form" onsubmit="handleSubmit(event)">
+            <input type="file" id="file-upload" name="file" accept=".csv" required>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="spinner">Loading...</div>
+        <div id="results"></div>
+    </div>
+</body>
+</html>
